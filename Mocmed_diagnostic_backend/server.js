@@ -16,7 +16,7 @@ app.use(
   cors({
     origin: [
       "http://localhost:5173",
-      "https://mocmed-diagnostic-frontend.vercel.app",
+      "https://mocmed-diagnostic-frontend-emd1.vercel.app/",
     ],
     credentials: true,
   })
