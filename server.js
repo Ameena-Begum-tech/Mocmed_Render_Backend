@@ -1,56 +1,54 @@
-// server.js
+const express = require("express");
+const cors = require("cors");
+const dotenv = require("dotenv");
 
-import express from "express";
-import cors from "cors";
-import dotenv from "dotenv";
-
-import authRoutes from "./routes/authRoutes.js"; // adjust path if needed
+const connectDB = require("./config/db");
+const { protect, authorize } = require("./middleware/authMiddleWare");
 
 dotenv.config();
+connectDB();
 
 const app = express();
 
-/* =========================
-   MIDDLEWARE (ORDER MATTERS)
-========================= */
+const allowedOrigins = [
+  "http://localhost:5173",
+  "https://mocmed-diagnostic-frontend-emd1.vercel.app",
+];
 
-// JSON parser
-app.use(express.json());
-
-// CORS setup
 app.use(
   cors({
-    origin: "https://mocmed-diagnostic-frontend-emd1.vercel.app",
-    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    origin: allowedOrigins,
     credentials: true,
   })
 );
 
-/*
-IMPORTANT:
-REMOVE this old line completely:
 app.options("*", cors());
-Express 5 no longer supports "*"
-cors() already handles preflight automatically.
-*/
 
-/* =========================
-   ROUTES
-========================= */
+app.use(express.json());
 
-app.use("/api/auth", authRoutes);
+app.use("/api/auth", require("./routes/authRoutes"));
+app.use("/api/reports", require("./routes/reportRoutes"));
 
-// Health check route (useful for Render wake-up)
 app.get("/", (req, res) => {
-  res.send("Backend running...");
+  res.send("Mocmed Backend Running...");
 });
 
-/* =========================
-   SERVER START
-========================= */
+app.get("/api/protected", protect, (req, res) => {
+  res.json({
+    message: "You accessed protected route",
+    user: req.user,
+  });
+});
+
+app.get("/api/admin-only", protect, authorize("SUPERADMIN"), (req, res) => {
+  res.json({
+    message: "Welcome Super Admin",
+    user: req.user,
+  });
+});
 
 const PORT = process.env.PORT || 5000;
 
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on port ${PORT}`);
 });
