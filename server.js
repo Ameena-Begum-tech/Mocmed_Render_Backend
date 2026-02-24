@@ -1,34 +1,31 @@
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
-
 const connectDB = require("./config/db");
-const { protect, authorize } = require("./middleware/authMiddleWare");
-
+const { protect } = require("./middleware/authMiddleWare");
+const { authorize } = require("./middleware/authMiddleWare");
 dotenv.config();
 connectDB();
 
 const app = express();
 
-const allowedOrigins = [
-  "http://localhost:5173",
-  "https://mocmed-diagnostic-frontend-emd1.vercel.app",
-];
+// Middlewares
+
 
 app.use(
   cors({
-    origin: allowedOrigins,
+    origin: [
+      "http://localhost:5173",
+      "https://mocmed-diagnostic-frontend-emd1.vercel.app",
+    ],
     credentials: true,
   })
 );
-
-app.options("*", cors());
-
 app.use(express.json());
-
 app.use("/api/auth", require("./routes/authRoutes"));
 app.use("/api/reports", require("./routes/reportRoutes"));
 
+// Test route
 app.get("/", (req, res) => {
   res.send("Mocmed Backend Running...");
 });
@@ -42,7 +39,7 @@ app.get("/api/protected", protect, (req, res) => {
 
 app.get("/api/admin-only", protect, authorize("SUPERADMIN"), (req, res) => {
   res.json({
-    message: "Welcome Super Admin",
+    message: "Welcome Super Admin 👑",
     user: req.user,
   });
 });
